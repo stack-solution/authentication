@@ -23,7 +23,7 @@ app.post('/api/register', function (req, res) {
   user.save(function(err, user){
     if(err){
       console.log(err);
-      res.sendStatus(404);
+      res.send({code: 404, message: err});
     }else{
       return res.send(user);
     }
