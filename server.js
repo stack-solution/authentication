@@ -24,7 +24,6 @@ app.post('/api/register', function (req, res) {
   let user = new User(req.body);
   user.save(function(err, user){
     if(err){
-      console.log(err);
       res.send({code: 404, message: err});
     }else{
       return res.send(user);
@@ -32,27 +31,41 @@ app.post('/api/register', function (req, res) {
   })
 }) 
 
-app.post('/profile'), function (req, res, next) {
+app.get('/profile'), function (req, res, next) {
   if(req.user){
-    res.sendStatus({code: 202, message: req.user});
+    res.send("Authenticated, Welcome!");
   }else{
-    res.sendStatus({code: 404, message: "Not Authenticated"});
+    res.send("Ur not signed");
   }
 }
 
 
 app.post('/api/login', function (req, res) {
-  User.findOne({email: req.body.email}, function (err, myUser){
-    if(err) res.status(404);
-    res.status(202);
+  User.findOne({'email': req.body.email, 'password': req.body.password}, (err, user)=>{
+    if(err){
+      res.send(err);
+    }
+    if(!user){
+      res.send(404)
+    }
+    else{
+      res.send({token: jwt.sign({email: user.email, username: user.username, id: user._id}, 'secretkey', {expiresIn: '30s'})});
+    }
   })
 })
-
-app.use(function(req,res,next){
-  console.log("moving");
-  res.send(202);
+/*
+app.use(function(req, res, next){
+  jwt.verify(req.headers.authorization, 'secretkey', (err, decoded)=>{
+    if(err){
+      //req.user = undefined;
+      res.send(req.user);
+    }else {
+      //req.user = decoded;
+      res.send(req.user);
+    }
+  })
 })
-
+*/
 
 app.listen(3000)
 console.log("Listening on http://localhost:3000")
