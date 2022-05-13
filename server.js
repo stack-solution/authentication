@@ -1,5 +1,6 @@
 var express = require('express')
 var mongoose = require('mongoose')
+var jwt = require('jsonwebtoken')
 require('./api/models/user.model')
 
 
@@ -13,13 +14,14 @@ User = mongoose.model('User');
 
 mongoose.connect('mongodb://127.0.0.1/myauth', {useNewUrlParser: true});
 var db = mongoose.connection;
+
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
   console.log("conncted to mongodb!")
 });
 
 app.post('/api/register', function (req, res) {
-  const user = new User(req.body);
+  let user = new User(req.body);
   user.save(function(err, user){
     if(err){
       console.log(err);
@@ -28,6 +30,27 @@ app.post('/api/register', function (req, res) {
       return res.send(user);
     }
   })
+}) 
+
+app.post('/profile'), function (req, res, next) {
+  if(req.user){
+    res.sendStatus({code: 202, message: req.user});
+  }else{
+    res.sendStatus({code: 404, message: "Not Authenticated"});
+  }
+}
+
+
+app.post('/api/login', function (req, res) {
+  User.findOne({email: req.body.email}, function (err, myUser){
+    if(err) res.status(404);
+    res.status(202);
+  })
+})
+
+app.use(function(req,res,next){
+  console.log("moving");
+  res.send(202);
 })
 
 
