@@ -1,6 +1,7 @@
 var express = require('express')
 var mongoose = require('mongoose')
 var jwt = require('jsonwebtoken')
+const { sendStatus } = require('express/lib/response')
 require('./api/models/user.model')
 
 
@@ -31,14 +32,13 @@ app.post('/api/register', function (req, res) {
   })
 }) 
 
-app.get('/profile'), function (req, res, next) {
-  if(req.user){
-    res.send("Authenticated, Welcome!");
-  }else{
-    res.send("Ur not signed");
-  }
-}
+app.post('/profile', function (req, res) {
+  res.send('hello world');
+})
 
+app.post('/idk', function(req,res){
+  res.send(202)
+})
 
 app.post('/api/login', function (req, res) {
   User.findOne({'email': req.body.email, 'password': req.body.password}, (err, user)=>{
@@ -49,23 +49,27 @@ app.post('/api/login', function (req, res) {
       res.send(404)
     }
     else{
-      res.send({token: jwt.sign({email: user.email, username: user.username, id: user._id}, 'secretkey', {expiresIn: '30s'})});
+      res.send({token: jwt.sign({email: user.email, username: user.username, id: user._id}, 'secretkey', {expiresIn: '120s'})});
     }
   })
 })
-/*
+
+function protected(req,res,next){
+  if(req.user){
+    console.log("Logged In")
+    next()
+  }else{
+    console.log("not logged in")
+    res.sendStatus({code: 404, message: "U are not logged in!"})
+  }
+}
+
 app.use(function(req, res, next){
-  jwt.verify(req.headers.authorization, 'secretkey', (err, decoded)=>{
-    if(err){
-      //req.user = undefined;
-      res.send(req.user);
-    }else {
-      //req.user = decoded;
-      res.send(req.user);
-    }
+    if(req.headers.authorization == 1) console.log("Im in the middle");
+    else if(req.headers.authorization == 2) console.log("Im an idiot");
+    next()
   })
-})
-*/
+
 
 app.listen(3000)
 console.log("Listening on http://localhost:3000")
